@@ -3,145 +3,143 @@ name: 'Visual Regression Testing'
 description: 'Run visual regression testing'
 
 inputs:
-    aws-access-key-id:
-        description: 'AWS access key id'
-        required: true
-    aws-secret-access-key:
-        description: 'AWS secret access key'
-        required: true
+  aws-access-key-id:
+    description: 'AWS access key id'
+    required: true
+  aws-secret-access-key:
+    description: 'AWS secret access key'
+    required: true
 
 runs:
-    using: 'composite'
+  using: 'composite'
 
-    steps:
-        -   name: Reset permissions
-            run: sudo chown -R $USER:$USER $GITHUB_WORKSPACE
-            shell: bash
+  steps:
+    - name: Reset permissions
+      shell: bash
+      run: sudo chown -R $USER:$USER $GITHUB_WORKSPACE
 
-        -   uses: actions/checkout@v2
-            with:
-                fetch-depth: 0
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
 
-        -   name: Get OS
-            id: os
-            shell: bash
-            run: |
-                df -h
-                if [ -n "$(command -v apt-get)" ]; then
-                    echo "::set-output name=os::ubuntu"
-                    echo "Using Ubuntu"
-                else
-                    echo "::set-output name=os::linux"
-                    echo "Using Linux"
-                fi
+    - name: Get OS
+      id: os
+      shell: bash
+      run: |
+        if [ -n "$(command -v apt-get)" ]; then
+            echo "::set-output name=os::ubuntu"
+            echo "Using Ubuntu"
+        else
+            echo "::set-output name=os::linux"
+            echo "Using Linux"
+        fi
 
-        -   name: Update
-            shell: bash
-            run: |
-                if [ ${{ steps.os.outputs.os }} = 'ubuntu' ]; then
-                    sudo apt-get update
-                    sudo apt-get -y upgrade
-                    sudo apt update
-                    sudo apt-get autoremove --purge
-                else
-                    sudo yum clean all --enablerepo=*
-                fi
+    - name: Update
+      shell: bash
+      run: |
+        if [ ${{ steps.os.outputs.os }} = 'ubuntu' ]; then
+            sudo apt-get update
+            sudo apt-get -y upgrade
+            sudo apt update
+            sudo apt-get autoremove --purge
+        else
+            sudo yum clean all --enablerepo=*
+        fi
 
-        -   name: Install jq
-            shell: bash
-            run: |
-                if [ ${{ steps.os.outputs.os }} = 'ubuntu' ]; then
-                    sudo apt-get install -y jq
-                else
-                    sudo yum install jq -y
-                fi
+    - name: Install jq
+      shell: bash
+      run: |
+        if [ ${{ steps.os.outputs.os }} = 'ubuntu' ]; then
+            sudo apt-get install -y jq
+        else
+            sudo yum install jq -y
+        fi
 
-        -   name: Check if VRT enabled
-            id: vrt_enabled
-            shell: bash
-            run: |
-                vrtClientId=`echo $(jq -r '.plugins."reg-notify-github-plugin".clientId' <<< "$(cat regconfig.json)")`
-                if [[ $vrtClientId != "" ]]; then
-                    echo "::set-output name=runVrt::true"
-                    echo "VRT Enabled"
-                else
-                    echo "VRT Not enabled"
-                fi
+    - name: Check if VRT enabled
+      id: vrt_enabled
+      shell: bash
+      run: |
+        vrtClientId=`echo $(jq -r '.plugins."reg-notify-github-plugin".clientId' <<< "$(cat regconfig.json)")`
+        if [[ $vrtClientId != "" ]]; then
+            echo "::set-output name=runVrt::true"
+            echo "VRT Enabled"
+        else
+            echo "VRT Not enabled"
+        fi
 
-        -   name: Install Chrome
-            if: steps.vrt_enabled.outputs.runVrt
-            shell: bash
-            run: |
-                if [ ${{ steps.os.outputs.os }} = 'ubuntu' ]; then
-                    echo "Using ubuntu"
-                    echo "Chrome should already be installed in the AMI"
-                else
-                    echo "Using linux"
-                    sudo amazon-linux-extras install epel
-                    sudo yum-config-manager --add-repo http://dl.google.com/linux/chrome/rpm/stable/x86_64
-                    sudo yum-config-manager --save --setopt=dl.google.com_linux_chrome_rpm_stable_x86_64.gpgkey=https://dl.google.com/linux/linux_signing_key.pub --setopt=dl.google.com_linux_chrome_rpm_stable_x86_64.gpgcheck=1
-                    sudo yum install -y google-chrome-stable
-                fi
+    - name: Install Chrome
+      if: steps.vrt_enabled.outputs.runVrt
+      shell: bash
+      run: |
+        if [ ${{ steps.os.outputs.os }} = 'ubuntu' ]; then
+            echo "Using ubuntu"
+            echo "Chrome should already be installed in the AMI"
+        else
+            echo "Using linux"
+            sudo amazon-linux-extras install epel
+            sudo yum-config-manager --add-repo http://dl.google.com/linux/chrome/rpm/stable/x86_64
+            sudo yum-config-manager --save --setopt=dl.google.com_linux_chrome_rpm_stable_x86_64.gpgkey=https://dl.google.com/linux/linux_signing_key.pub --setopt=dl.google.com_linux_chrome_rpm_stable_x86_64.gpgcheck=1
+            sudo yum install -y google-chrome-stable
+        fi
 
-        -   name: Read .nvmrc
-            shell: bash
-            id: nvm
-            run: echo "##[set-output name=NVMRC;]$(cat .nvmrc)"
+    - name: Read .nvmrc
+      shell: bash
+      id: nvm
+      run: echo "##[set-output name=NVMRC;]$(cat .nvmrc)"
 
-        -   name: Use Node.js ${{ steps.nvm.outputs.NVMRC }}
-            if: steps.vrt_enabled.outputs.runVrt
-            uses: actions/setup-node@v2-beta
-            with:
-                node-version: "${{ steps.nvm.outputs.NVMRC }}"
+    - name: Use Node.js ${{ steps.nvm.outputs.NVMRC }}
+      if: steps.vrt_enabled.outputs.runVrt
+      uses: actions/setup-node@v2-beta
+      with:
+        node-version: "${{ steps.nvm.outputs.NVMRC }}"
 
-        -   name: Install yarn
-            if: steps.vrt_enabled.outputs.runVrt
-            shell: bash
-            run: npm install -g yarn
+    - name: Install yarn
+      if: steps.vrt_enabled.outputs.runVrt
+      shell: bash
+      run: npm install -g yarn
 
-        -   name: workaround for detached HEAD
-            if: steps.vrt_enabled.outputs.runVrt
-            shell: bash
-            run: git checkout ${{ github.event.pull_request.head.ref }} && git pull
+    - name: workaround for detached HEAD
+      if: steps.vrt_enabled.outputs.runVrt
+      shell: bash
+      run: git checkout ${{ github.event.pull_request.head.ref }} && git pull
 
-        -   name: Reset permissions
-            shell: bash
-            run: sudo chown -R $USER:$USER $GITHUB_WORKSPACE
+    - name: Reset permissions
+      shell: bash
+      run: sudo chown -R $USER:$USER $GITHUB_WORKSPACE
 
-        -   name: Install dependencies
-            if: steps.vrt_enabled.outputs.runVrt
-            shell: bash
-            run: yarn install --pure-lockfile
-            env:
-                CI: true
+    - name: Install dependencies
+      if: steps.vrt_enabled.outputs.runVrt
+      shell: bash
+      run: yarn install --pure-lockfile
+      env:
+        CI: true
 
-        -   name: Build storybook
-            if: steps.vrt_enabled.outputs.runVrt
-            shell: bash
-            run: yarn storybook:build
+    - name: Build storybook
+      if: steps.vrt_enabled.outputs.runVrt
+      shell: bash
+      run: yarn storybook:build
 
-        -   name: create the current snapshot
-            if: steps.vrt_enabled.outputs.runVrt
-            shell: bash
-            run: yarn storycap
+    - name: create the current snapshot
+      if: steps.vrt_enabled.outputs.runVrt
+      shell: bash
+      run: yarn storycap
 
-        -   name: Run Reg-suit (pull request)
-            if: steps.vrt_enabled.outputs.runVrt && github.event_name == 'pull_request'
-            shell: bash
-            env:
-                AWS_ACCESS_KEY_ID: ${{ inputs.aws-access-key-id }}
-                AWS_SECRET_ACCESS_KEY: ${{ inputs.aws-secret-access-key }}
-                BASE_SHA: ${{ github.event.pull_request.base.sha }}
-                HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-            run: yarn run reg-suit run
+    - name: Run Reg-suit (pull request)
+      if: steps.vrt_enabled.outputs.runVrt && github.event_name == 'pull_request'
+      shell: bash
+      env:
+        AWS_ACCESS_KEY_ID: ${{ inputs.aws-access-key-id }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.aws-secret-access-key }}
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      run: yarn run reg-suit run
 
-        -   name: Run Reg-suit (push)
-            if: steps.vrt_enabled.outputs.runVrt && github.event_name == 'push'
-            shell: bash
-            env:
-                AWS_ACCESS_KEY_ID: ${{ inputs.aws-access-key-id }}
-                AWS_SECRET_ACCESS_KEY: ${{ inputs.aws-secret-access-key }}
-            run: |
-                node .github/generate-reg-config.js
-                yarn run reg-suit run --config=regconfig-push.json
-
+    - name: Run Reg-suit (push)
+      if: steps.vrt_enabled.outputs.runVrt && github.event_name == 'push'
+      shell: bash
+      env:
+        AWS_ACCESS_KEY_ID: ${{ inputs.aws-access-key-id }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.aws-secret-access-key }}
+      run: |
+        node .github/generate-reg-config.js
+        yarn run reg-suit run --config=regconfig-push.json
