@@ -1,0 +1,43 @@
+name: 'Reviewdog / Eslint'
+
+description: 'Lint code using eslint'
+
+runs:
+  using: 'composite'
+
+  steps:
+    - name: Reset permissions
+      shell: bash
+      run: sudo chown -R $USER:$USER $GITHUB_WORKSPACE
+
+    - uses: actions/checkout@v2
+
+    - name: Read .nvmrc
+      id: nvm
+      shell: bash
+      run: echo "##[set-output name=NVMRC;]$(cat .nvmrc)"
+
+    - name: Use Node.js ${{ steps.nvm.outputs.NVMRC }}
+      uses: actions/setup-node@v2-beta
+      with:
+        node-version: "${{ steps.nvm.outputs.NVMRC }}"
+
+    - name: Install yarn
+      shell: bash
+      run: npm install -g yarn
+
+    - name: Reset permissions
+      shell: bash
+      run: sudo chown -R $USER:$USER $GITHUB_WORKSPACE
+
+    - name: Install dependencies
+      shell: bash
+      run: yarn install --pure-lockfile
+      env:
+        CI: true
+
+    - name: Eslint
+      uses: reviewdog/action-eslint@v1
+      with:
+        reporter: github-pr-review # Change reporter.
+        eslint_flags: '--ext .js,.vue --ignore-path .gitignore .'
