@@ -8,6 +8,7 @@ runs:
     steps:
         -   name: Reset permissions
             run: sudo chown -R $USER:$USER $GITHUB_WORKSPACE
+            shell: bash
 
         -   uses: actions/checkout@v2
             with:
@@ -15,6 +16,7 @@ runs:
 
         -   name: Get OS
             id: os
+            shell: bash
             run: |
                 df -h
                 if [ -n "$(command -v apt-get)" ]; then
@@ -26,6 +28,7 @@ runs:
                 fi
 
         -   name: Update
+            shell: bash
             run: |
                 if [ ${{ steps.os.outputs.os }} = 'ubuntu' ]; then
                     sudo apt-get update
@@ -37,6 +40,7 @@ runs:
                 fi
 
         -   name: Install jq
+            shell: bash
             run: |
                 if [ ${{ steps.os.outputs.os }} = 'ubuntu' ]; then
                     sudo apt-get install -y jq
@@ -46,6 +50,7 @@ runs:
 
         -   name: Check if VRT enabled
             id: vrt_enabled
+            shell: bash
             run: |
                 vrtClientId=`echo $(jq -r '.plugins."reg-notify-github-plugin".clientId' <<< "$(cat regconfig.json)")`
                 if [[ $vrtClientId != "" ]]; then
@@ -57,6 +62,7 @@ runs:
 
         -   name: Install Chrome
             if: steps.vrt_enabled.outputs.runVrt
+            shell: bash
             run: |
                 if [ ${{ steps.os.outputs.os }} = 'ubuntu' ]; then
                     echo "Using ubuntu"
@@ -70,8 +76,9 @@ runs:
                 fi
 
         -   name: Read .nvmrc
-            run: echo "##[set-output name=NVMRC;]$(cat .nvmrc)"
+            shell: bash
             id: nvm
+            run: echo "##[set-output name=NVMRC;]$(cat .nvmrc)"
 
         -   name: Use Node.js ${{ steps.nvm.outputs.NVMRC }}
             if: steps.vrt_enabled.outputs.runVrt
@@ -81,31 +88,38 @@ runs:
 
         -   name: Install yarn
             if: steps.vrt_enabled.outputs.runVrt
+            shell: bash
             run: npm install -g yarn
 
         -   name: workaround for detached HEAD
             if: steps.vrt_enabled.outputs.runVrt
+            shell: bash
             run: git checkout ${{ github.event.pull_request.head.ref }} && git pull
 
         -   name: Reset permissions
+            shell: bash
             run: sudo chown -R $USER:$USER $GITHUB_WORKSPACE
 
         -   name: Install dependencies
             if: steps.vrt_enabled.outputs.runVrt
+            shell: bash
             run: yarn install --pure-lockfile
             env:
                 CI: true
 
         -   name: Build storybook
             if: steps.vrt_enabled.outputs.runVrt
+            shell: bash
             run: yarn storybook:build
 
         -   name: create the current snapshot
             if: steps.vrt_enabled.outputs.runVrt
+            shell: bash
             run: yarn storycap
 
         -   name: Run Reg-suit (pull request)
             if: steps.vrt_enabled.outputs.runVrt && github.event_name == 'pull_request'
+            shell: bash
             env:
                 AWS_ACCESS_KEY_ID: ${{ secrets.VRT_AWS_ACCESS_KEY_ID }}
                 AWS_SECRET_ACCESS_KEY: ${{ secrets.VRT_AWS_SECRET_ACCESS_KEY }}
@@ -115,6 +129,7 @@ runs:
 
         -   name: Run Reg-suit (push)
             if: steps.vrt_enabled.outputs.runVrt && github.event_name == 'push'
+            shell: bash
             env:
                 AWS_ACCESS_KEY_ID: ${{ secrets.VRT_AWS_ACCESS_KEY_ID }}
                 AWS_SECRET_ACCESS_KEY: ${{ secrets.VRT_AWS_SECRET_ACCESS_KEY }}
