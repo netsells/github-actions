@@ -2,6 +2,11 @@ name: 'Reviewdog / Stylelint'
 
 description: 'Lint code using stylelint'
 
+inputs:
+  github-token:
+    description: 'Github token'
+    required: true
+
 runs:
   using: 'composite'
 
@@ -39,5 +44,6 @@ runs:
     - name: Stylelint
       uses: reviewdog/action-stylelint@v1
       with:
-        reporter: github-pr-review # Change reporter.
+        github_token: ${{ inputs.github-token }}
+        reporter: github-pr-review
         stylelint_input: './resources/**/*.{scss,vue}'
