@@ -2,6 +2,14 @@ name: 'Visual Regression Testing'
 
 description: 'Run visual regression testing'
 
+inputs:
+    aws-access-key-id:
+        description: 'AWS access key id'
+        required: true
+    aws-secret-access-key:
+        description: 'AWS secret access key'
+        required: true
+
 runs:
     using: 'composite'
 
@@ -121,8 +129,8 @@ runs:
             if: steps.vrt_enabled.outputs.runVrt && github.event_name == 'pull_request'
             shell: bash
             env:
-                AWS_ACCESS_KEY_ID: ${{ secrets.VRT_AWS_ACCESS_KEY_ID }}
-                AWS_SECRET_ACCESS_KEY: ${{ secrets.VRT_AWS_SECRET_ACCESS_KEY }}
+                AWS_ACCESS_KEY_ID: ${{ inputs.aws-access-key-id }}
+                AWS_SECRET_ACCESS_KEY: ${{ inputs.aws-secret-access-key }}
                 BASE_SHA: ${{ github.event.pull_request.base.sha }}
                 HEAD_SHA: ${{ github.event.pull_request.head.sha }}
             run: yarn run reg-suit run
@@ -131,8 +139,8 @@ runs:
             if: steps.vrt_enabled.outputs.runVrt && github.event_name == 'push'
             shell: bash
             env:
-                AWS_ACCESS_KEY_ID: ${{ secrets.VRT_AWS_ACCESS_KEY_ID }}
-                AWS_SECRET_ACCESS_KEY: ${{ secrets.VRT_AWS_SECRET_ACCESS_KEY }}
+                AWS_ACCESS_KEY_ID: ${{ inputs.aws-access-key-id }}
+                AWS_SECRET_ACCESS_KEY: ${{ inputs.aws-secret-access-key }}
             run: |
                 node .github/generate-reg-config.js
                 yarn run reg-suit run --config=regconfig-push.json
