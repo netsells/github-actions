@@ -38,10 +38,10 @@ runs:
       shell: bash
       run: |
         if [ ${{ steps.os.outputs.os }} = 'ubuntu' ]; then
-            sudo apt-get update
-            sudo apt-get -y upgrade
-            sudo apt update
-            sudo apt-get autoremove --purge
+            for i in 1 2 3 4 5; do sudo apt-get update && break || sleep 15; done
+            for i in 1 2 3 4 5; do sudo apt-get -y upgrade && break || sleep 15; done
+            for i in 1 2 3 4 5; do sudo apt update && break || sleep 15; done
+            for i in 1 2 3 4 5; do sudo apt-get autoremove --purge && break || sleep 15; done
         else
             sudo yum clean all --enablerepo=*
         fi
