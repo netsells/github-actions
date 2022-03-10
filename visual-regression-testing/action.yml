@@ -50,7 +50,7 @@ runs:
       shell: bash
       run: |
         if [ ${{ steps.os.outputs.os }} = 'ubuntu' ]; then
-            sudo apt-get install -y jq
+            for i in 1 2 3 4 5; do sudo apt-get install -y jq && break || sleep 15; done
         else
             sudo yum install jq -y
         fi
