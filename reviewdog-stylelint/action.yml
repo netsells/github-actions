@@ -31,15 +31,15 @@ runs:
       shell: bash
       run: npm install -g yarn
 
-    - name: Reset permissions
-      shell: bash
-      run: sudo chown -R root:root $GITHUB_WORKSPACE
-
     - name: Install dependencies
       shell: bash
       run: yarn install --pure-lockfile
       env:
         CI: true
+
+    - name: Reset permissions
+      shell: bash
+      run: sudo chown -R root:root $GITHUB_WORKSPACE
 
     - name: Stylelint
       uses: reviewdog/action-stylelint@v1
