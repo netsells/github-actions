@@ -13,7 +13,7 @@ runs:
   steps:
     - name: Reset permissions
       shell: bash
-      run: sudo chown -R $USER:$USER $GITHUB_WORKSPACE
+      run: sudo chown -R root:root $GITHUB_WORKSPACE
 
     - uses: actions/checkout@v2
 
@@ -33,7 +33,7 @@ runs:
 
     - name: Reset permissions
       shell: bash
-      run: sudo chown -R $USER:$USER $GITHUB_WORKSPACE
+      run: sudo chown -R root:root $GITHUB_WORKSPACE
 
     - name: Install dependencies
       shell: bash
