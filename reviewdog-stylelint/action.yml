@@ -47,3 +47,8 @@ runs:
         github_token: ${{ inputs.github-token }}
         reporter: github-pr-review
         stylelint_input: './resources/**/*.{scss,vue}'
+        
+
+    - name: Reset permissions
+      shell: bash
+      run: sudo chown -R $USER:$USER $GITHUB_WORKSPACE
