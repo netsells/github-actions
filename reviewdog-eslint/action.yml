@@ -36,9 +36,9 @@ runs:
       env:
         CI: true
 
-    - name: Reset permissions
-      shell: bash
-      run: sudo chown -R root:root $GITHUB_WORKSPACE
+#     - name: Reset permissions
+#       shell: bash
+#       run: sudo chown -R root:root $GITHUB_WORKSPACE
 
     - name: Eslint
       uses: reviewdog/action-eslint@v1
