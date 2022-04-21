@@ -40,6 +40,10 @@ runs:
     - name: Reset permissions
       shell: bash
       run: sudo chown -R root:root $GITHUB_WORKSPACE
+      
+    - name: Try a fix
+      shell: bash
+      run: git config --global --add safe.directory "$GITHUB_WORKSPACE" || exit 1
 
     - name: Stylelint
       uses: reviewdog/action-stylelint@v1
