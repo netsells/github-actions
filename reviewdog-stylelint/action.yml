@@ -41,13 +41,16 @@ runs:
       shell: bash
       run: sudo chown -R root:root $GITHUB_WORKSPACE
 
+    - name: Fix for https://github.com/reviewdog/action-stylelint/issues/78
+      shell: bash
+      run: git config --global --add safe.directory "$GITHUB_WORKSPACE" || exit 1
+
     - name: Stylelint
       uses: reviewdog/action-stylelint@v1
       with:
         github_token: ${{ inputs.github-token }}
         reporter: github-pr-review
         stylelint_input: './resources/**/*.{scss,vue}'
-        
 
     - name: Reset permissions
       shell: bash
