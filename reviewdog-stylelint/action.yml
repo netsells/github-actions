@@ -22,24 +22,24 @@ runs:
     - uses: actions/checkout@v2
 
     - name: Read .nvmrc
-      working-directory: ${{ inputs.aws-secret-access-key }}
+      working-directory: ${{ inputs.working-directory }}
       shell: bash
       id: nvm
       run: echo "##[set-output name=NVMRC;]$(cat .nvmrc)"
 
     - name: Use Node.js ${{ steps.nvm.outputs.NVMRC }}
-      working-directory: ${{ inputs.aws-secret-access-key }}
+      working-directory: ${{ inputs.working-directory }}
       uses: actions/setup-node@v2-beta
       with:
         node-version: "${{ steps.nvm.outputs.NVMRC }}"
 
     - name: Install yarn
-      working-directory: ${{ inputs.aws-secret-access-key }}
+      working-directory: ${{ inputs.working-directory }}
       shell: bash
       run: npm install -g yarn
 
     - name: Install dependencies
-      working-directory: ${{ inputs.aws-secret-access-key }}
+      working-directory: ${{ inputs.working-directory }}
       shell: bash
       run: yarn install --pure-lockfile
       env:
@@ -54,7 +54,7 @@ runs:
       run: git config --global --add safe.directory "$GITHUB_WORKSPACE" || exit 1
 
     - name: Stylelint
-      working-directory: ${{ inputs.aws-secret-access-key }}
+      working-directory: ${{ inputs.working-directory }}
       uses: reviewdog/action-stylelint@v1
       with:
         github_token: ${{ inputs.github-token }}
