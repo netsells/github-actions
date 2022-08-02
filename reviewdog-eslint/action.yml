@@ -2,6 +2,11 @@ name: 'Reviewdog / Eslint'
 
 description: 'Lint code using eslint'
 
+inputs:
+  working-directory:
+    description: 'Working directory to run the VRT'
+    required: true
+
 runs:
   using: 'composite'
 
@@ -13,6 +18,7 @@ runs:
     - uses: actions/checkout@v2
 
     - name: Read .nvmrc
+      working-directory: ${{ inputs.aws-secret-access-key }}
       id: nvm
       shell: bash
       run: echo "##[set-output name=NVMRC;]$(cat .nvmrc)"
@@ -23,6 +29,7 @@ runs:
         node-version: "${{ steps.nvm.outputs.NVMRC }}"
 
     - name: Install yarn
+      working-directory: ${{ inputs.aws-secret-access-key }}
       shell: bash
       run: npm install -g yarn
 
@@ -31,6 +38,7 @@ runs:
       run: sudo chown -R $USER:$USER $GITHUB_WORKSPACE
 
     - name: Install dependencies
+      working-directory: ${{ inputs.aws-secret-access-key }}
       shell: bash
       run: yarn install --pure-lockfile
       env:
@@ -41,6 +49,7 @@ runs:
 #       run: sudo chown -R root:root $GITHUB_WORKSPACE
 
     - name: Eslint
+      working-directory: ${{ inputs.aws-secret-access-key }}
       uses: reviewdog/action-eslint@v1
       with:
         reporter: github-pr-review # Change reporter.
