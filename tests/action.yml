@@ -2,6 +2,11 @@ name: 'Tests'
 
 description: 'Run tests'
 
+inputs:
+  working-directory:
+    description: 'Working directory to run the VRT'
+    default: './'
+
 runs:
   using: 'composite'
 
@@ -15,6 +20,7 @@ runs:
         fetch-depth: 0
 
     - name: Read .nvmrc
+      working-directory: ${{ inputs.working-directory }}
       id: nvm
       shell: bash
       run: echo "##[set-output name=NVMRC;]$(cat .nvmrc)"
@@ -25,6 +31,7 @@ runs:
         node-version: "${{ steps.nvm.outputs.NVMRC }}"
 
     - name: Install yarn
+      working-directory: ${{ inputs.working-directory }}
       shell: bash
       run: npm install -g yarn
 
@@ -33,11 +40,13 @@ runs:
       run: sudo chown -R $USER:$USER $GITHUB_WORKSPACE
 
     - name: Install dependencies
+      working-directory: ${{ inputs.working-directory }}
       shell: bash
       run: yarn install --pure-lockfile
       env:
         CI: true
 
     - name: Run tests
+      working-directory: ${{ inputs.working-directory }}
       shell: bash
       run: yarn test
