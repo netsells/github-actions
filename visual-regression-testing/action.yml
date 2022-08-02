@@ -11,7 +11,7 @@ inputs:
     required: true
   working-directory:
     description: 'Working directory to run the VRT'
-    required: true
+    default: './'
 
 runs:
   using: 'composite'
