@@ -9,6 +9,9 @@ inputs:
   aws-secret-access-key:
     description: 'AWS secret access key'
     required: true
+  working-directory:
+    description: 'Working directory to run the VRT'
+    required: true
 
 runs:
   using: 'composite'
@@ -56,6 +59,7 @@ runs:
         fi
 
     - name: Check if VRT enabled
+      working-directory: ${{ inputs.aws-secret-access-key }}
       id: vrt_enabled
       shell: bash
       run: |
@@ -83,6 +87,7 @@ runs:
         fi
 
     - name: Read .nvmrc
+      working-directory: ${{ inputs.aws-secret-access-key }}
       shell: bash
       id: nvm
       run: echo "##[set-output name=NVMRC;]$(cat .nvmrc)"
@@ -95,6 +100,7 @@ runs:
 
     - name: Install yarn
       if: steps.vrt_enabled.outputs.runVrt
+      working-directory: ${{ inputs.aws-secret-access-key }}
       shell: bash
       run: npm install -g yarn
 
@@ -109,6 +115,7 @@ runs:
 
     - name: Install dependencies
       if: steps.vrt_enabled.outputs.runVrt
+      working-directory: ${{ inputs.aws-secret-access-key }}
       shell: bash
       run: yarn install --pure-lockfile
       env:
@@ -116,16 +123,19 @@ runs:
 
     - name: Build storybook
       if: steps.vrt_enabled.outputs.runVrt
+      working-directory: ${{ inputs.aws-secret-access-key }}
       shell: bash
       run: yarn storybook:build
 
     - name: create the current snapshot
       if: steps.vrt_enabled.outputs.runVrt
+      working-directory: ${{ inputs.aws-secret-access-key }}
       shell: bash
       run: yarn storycap
 
     - name: Run Reg-suit (pull request)
       if: steps.vrt_enabled.outputs.runVrt && github.event_name == 'pull_request'
+      working-directory: ${{ inputs.aws-secret-access-key }}
       shell: bash
       env:
         AWS_ACCESS_KEY_ID: ${{ inputs.aws-access-key-id }}
@@ -136,6 +146,7 @@ runs:
 
     - name: Run Reg-suit (push)
       if: steps.vrt_enabled.outputs.runVrt && github.event_name == 'push'
+      working-directory: ${{ inputs.aws-secret-access-key }}
       shell: bash
       env:
         AWS_ACCESS_KEY_ID: ${{ inputs.aws-access-key-id }}
