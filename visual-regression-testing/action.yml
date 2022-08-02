@@ -12,6 +12,9 @@ inputs:
   working-directory:
     description: 'Working directory to run the VRT'
     default: './'
+  config-file:
+    description: 'Path to the regconfig file'
+    default: ${{ github.workspace }}
 
 runs:
   using: 'composite'
@@ -152,5 +155,5 @@ runs:
         AWS_ACCESS_KEY_ID: ${{ inputs.aws-access-key-id }}
         AWS_SECRET_ACCESS_KEY: ${{ inputs.aws-secret-access-key }}
       run: |
-        node ${{ github.action_path }}/generate-reg-config.js "${{ inputs.working-directory }}"
+        node ${{ github.action_path }}/generate-reg-config.js "${{ inputs.config-file }}"
         yarn run reg-suit run --config=regconfig-push.json
