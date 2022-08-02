@@ -54,12 +54,12 @@ runs:
       run: git config --global --add safe.directory "$GITHUB_WORKSPACE" || exit 1
 
     - name: Stylelint
-      working-directory: ${{ inputs.working-directory }}
       uses: reviewdog/action-stylelint@v1
       with:
         github_token: ${{ inputs.github-token }}
         reporter: github-pr-review
         stylelint_input: './resources/**/*.{scss,vue}'
+        workingdir: ${{ inputs.working-directory }}
 
     - name: Reset permissions
       shell: bash
