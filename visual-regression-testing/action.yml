@@ -152,5 +152,5 @@ runs:
         AWS_ACCESS_KEY_ID: ${{ inputs.aws-access-key-id }}
         AWS_SECRET_ACCESS_KEY: ${{ inputs.aws-secret-access-key }}
       run: |
-        node ${{ github.action_path }}/generate-reg-config.js "${{ github.workspace }}"
+        node ${{ github.action_path }}/generate-reg-config.js "${{ inputs.working-directory }}"
         yarn run reg-suit run --config=regconfig-push.json
