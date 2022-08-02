@@ -28,7 +28,6 @@ runs:
       run: echo "##[set-output name=NVMRC;]$(cat .nvmrc)"
 
     - name: Use Node.js ${{ steps.nvm.outputs.NVMRC }}
-      working-directory: ${{ inputs.working-directory }}
       uses: actions/setup-node@v2-beta
       with:
         node-version: "${{ steps.nvm.outputs.NVMRC }}"
