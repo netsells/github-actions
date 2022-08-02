@@ -7,6 +7,10 @@ inputs:
     description: 'Github token'
     required: true
 
+  working-directory:
+    description: 'Working directory to run the VRT'
+    required: true
+
 runs:
   using: 'composite'
 
@@ -18,20 +22,24 @@ runs:
     - uses: actions/checkout@v2
 
     - name: Read .nvmrc
+      working-directory: ${{ inputs.aws-secret-access-key }}
       shell: bash
       id: nvm
       run: echo "##[set-output name=NVMRC;]$(cat .nvmrc)"
 
     - name: Use Node.js ${{ steps.nvm.outputs.NVMRC }}
+      working-directory: ${{ inputs.aws-secret-access-key }}
       uses: actions/setup-node@v2-beta
       with:
         node-version: "${{ steps.nvm.outputs.NVMRC }}"
 
     - name: Install yarn
+      working-directory: ${{ inputs.aws-secret-access-key }}
       shell: bash
       run: npm install -g yarn
 
     - name: Install dependencies
+      working-directory: ${{ inputs.aws-secret-access-key }}
       shell: bash
       run: yarn install --pure-lockfile
       env:
@@ -46,6 +54,7 @@ runs:
       run: git config --global --add safe.directory "$GITHUB_WORKSPACE" || exit 1
 
     - name: Stylelint
+      working-directory: ${{ inputs.aws-secret-access-key }}
       uses: reviewdog/action-stylelint@v1
       with:
         github_token: ${{ inputs.github-token }}
