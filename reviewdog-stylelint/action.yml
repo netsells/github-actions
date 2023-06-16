@@ -7,6 +7,10 @@ inputs:
     description: 'Github token'
     required: true
 
+  lint-path:
+    description: 'Stylelint input path'
+    default: './resources/**/*.{scss,vue}'
+
 runs:
   using: 'composite'
 
@@ -15,7 +19,7 @@ runs:
       shell: bash
       run: sudo chown -R $USER:$USER $GITHUB_WORKSPACE
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Read .nvmrc
       shell: bash
@@ -50,7 +54,7 @@ runs:
       with:
         github_token: ${{ inputs.github-token }}
         reporter: github-pr-review
-        stylelint_input: './resources/**/*.{scss,vue}'
+        stylelint_input: ${{ inputs.lint-path }}
 
     - name: Reset permissions
       shell: bash
