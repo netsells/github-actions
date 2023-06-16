@@ -24,10 +24,12 @@ runs:
     - name: Read .nvmrc
       shell: bash
       id: nvm
-      run: echo "##[set-output name=NVMRC;]$(cat .nvmrc)"
+      run: | 
+        version=$(cat .nvmrc)
+        echo "NVMRC=$version" >> $GITHUB_OUTPUT
 
     - name: Use Node.js ${{ steps.nvm.outputs.NVMRC }}
-      uses: actions/setup-node@v2-beta
+      uses: actions/setup-node@v3
       with:
         node-version: "${{ steps.nvm.outputs.NVMRC }}"
 

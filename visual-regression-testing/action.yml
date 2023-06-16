@@ -27,32 +27,32 @@ runs:
       shell: bash
       run: |
         if [ -n "$(command -v apt-get)" ]; then
-            echo "::set-output name=os::ubuntu"
-            echo "Using Ubuntu"
+          echo "os=ubuntu" >> $GITHUB_OUTPUT
+          echo "Using Ubuntu"
         else
-            echo "::set-output name=os::linux"
-            echo "Using Linux"
+          echo "os=linux" >> $GITHUB_OUTPUT
+          echo "Using Linux"
         fi
 
     - name: Update
       shell: bash
       run: |
         if [ ${{ steps.os.outputs.os }} = 'ubuntu' ]; then
-            for i in 1 2 3 4 5; do sudo apt-get update && break || sleep 15; done
-            for i in 1 2 3 4 5; do sudo apt-get -y upgrade && break || sleep 15; done
-            for i in 1 2 3 4 5; do sudo apt update && break || sleep 15; done
-            for i in 1 2 3 4 5; do sudo apt-get autoremove --purge && break || sleep 15; done
+          for i in 1 2 3 4 5; do sudo apt-get update && break || sleep 15; done
+          for i in 1 2 3 4 5; do sudo apt-get -y upgrade && break || sleep 15; done
+          for i in 1 2 3 4 5; do sudo apt update && break || sleep 15; done
+          for i in 1 2 3 4 5; do sudo apt-get autoremove --purge && break || sleep 15; done
         else
-            sudo yum clean all --enablerepo=*
+          sudo yum clean all --enablerepo=*
         fi
 
     - name: Install jq
       shell: bash
       run: |
         if [ ${{ steps.os.outputs.os }} = 'ubuntu' ]; then
-            for i in 1 2 3 4 5; do sudo apt-get install -y jq && break || sleep 15; done
+          for i in 1 2 3 4 5; do sudo apt-get install -y jq && break || sleep 15; done
         else
-            sudo yum install jq -y
+          sudo yum install jq -y
         fi
 
     - name: Check if VRT enabled
@@ -61,10 +61,10 @@ runs:
       run: |
         vrtClientId=`echo $(jq -r '.plugins."reg-notify-github-plugin".clientId' <<< "$(cat regconfig.json)")`
         if [[ $vrtClientId != "" ]]; then
-            echo "::set-output name=runVrt::true"
-            echo "VRT Enabled"
+          echo "runVrt=true" >> $GITHUB_OUTPUT
+          echo "VRT Enabled"
         else
-            echo "VRT Not enabled"
+          echo "VRT Not enabled"
         fi
 
     - name: Install Chrome
@@ -72,24 +72,26 @@ runs:
       shell: bash
       run: |
         if [ ${{ steps.os.outputs.os }} = 'ubuntu' ]; then
-            echo "Using ubuntu"
-            echo "Chrome should already be installed in the AMI"
+          echo "Using ubuntu"
+          echo "Chrome should already be installed in the AMI"
         else
-            echo "Using linux"
-            sudo amazon-linux-extras install epel
-            sudo yum-config-manager --add-repo http://dl.google.com/linux/chrome/rpm/stable/x86_64
-            sudo yum-config-manager --save --setopt=dl.google.com_linux_chrome_rpm_stable_x86_64.gpgkey=https://dl.google.com/linux/linux_signing_key.pub --setopt=dl.google.com_linux_chrome_rpm_stable_x86_64.gpgcheck=1
-            sudo yum install -y google-chrome-stable
+          echo "Using linux"
+          sudo amazon-linux-extras install epel
+          sudo yum-config-manager --add-repo http://dl.google.com/linux/chrome/rpm/stable/x86_64
+          sudo yum-config-manager --save --setopt=dl.google.com_linux_chrome_rpm_stable_x86_64.gpgkey=https://dl.google.com/linux/linux_signing_key.pub --setopt=dl.google.com_linux_chrome_rpm_stable_x86_64.gpgcheck=1
+          sudo yum install -y google-chrome-stable
         fi
 
     - name: Read .nvmrc
       shell: bash
       id: nvm
-      run: echo "##[set-output name=NVMRC;]$(cat .nvmrc)"
+      run: |
+        version=$(cat .nvmrc)
+        echo "NVMRC=$version" >> $GITHUB_OUTPUT
 
     - name: Use Node.js ${{ steps.nvm.outputs.NVMRC }}
       if: steps.vrt_enabled.outputs.runVrt
-      uses: actions/setup-node@v2-beta
+      uses: actions/setup-node@v3
       with:
         node-version: "${{ steps.nvm.outputs.NVMRC }}"
 
