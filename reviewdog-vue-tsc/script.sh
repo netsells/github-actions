@@ -6,6 +6,8 @@ export REVIEWDOG_GITHUB_API_TOKEN="${INPUT_GITHUB_TOKEN}"
 
 echo "::group::📝 Running vue-tsc with reviewdog 🐶 ..."
 
+npx --yes -p vue-tsc -p typescript vue-tsc --noEmit
+
 npx --yes -p vue-tsc -p typescript vue-tsc --noEmit ${INPUT_TSC_FLAGS} |
   reviewdog -f=tsc \
     -name="${INPUT_TOOL_NAME}" \
