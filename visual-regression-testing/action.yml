@@ -26,35 +26,17 @@ runs:
           echo "VRT Not enabled"
         fi
 
-    - uses: actions/github-script@v7
-      id: get_pr_data
-      with:
-        script: |
-          return (
-            await github.rest.repos.listPullRequestsAssociatedWithCommit({
-              commit_sha: context.sha,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-            })
-          ).data[0];
-
-    - name: Pull Request data
-      shell: bash
-      run: |
-        echo '${{ fromJson(steps.get_pr_data.outputs.result).number }}'
-
     - name: Install dependencies
-      if: steps.vrt_enabled.outputs.runVrt && (github.event_name == 'pull_request' || !steps.get_pr_data.outputs.result.number)
       shell: bash
       run: yarn install --frozen-lockfile
 
     - name: Build storybook
-      if: steps.vrt_enabled.outputs.runVrt && (github.event_name == 'pull_request' || !steps.get_pr_data.outputs.result.number)
+      if: steps.vrt_enabled.outputs.runVrt
       shell: bash
       run: yarn storybook:build
 
     - name: create the current snapshot
-      if: steps.vrt_enabled.outputs.runVrt && (github.event_name == 'pull_request' || !steps.get_pr_data.outputs.result.number)
+      if: steps.vrt_enabled.outputs.runVrt
       shell: bash
       run: yarn storycap
 
@@ -69,7 +51,7 @@ runs:
       run: yarn run reg-suit run
 
     - name: Run Reg-suit (push)
-      if: steps.vrt_enabled.outputs.runVrt && github.event_name == 'push' && !steps.get_pr_data.outputs.result.number
+      if: steps.vrt_enabled.outputs.runVrt && github.event_name == 'push'
       shell: bash
       env:
         AWS_ACCESS_KEY_ID: ${{ inputs.aws-access-key-id }}
