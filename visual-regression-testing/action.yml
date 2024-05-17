@@ -26,22 +26,36 @@ runs:
           echo "VRT Not enabled"
         fi
 
-#    - name: workaround for detached HEAD
-#      if: steps.vrt_enabled.outputs.runVrt
-#      shell: bash
-#      run: git checkout origin/${{ github.event.pull_request.head.ref }} && git pull
+    - uses: actions/github-script@v7
+      id: get_pr_data
+      with:
+        script: |
+          return (
+            await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              commit_sha: context.sha,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            })
+          ).data[0];
+
+    - name: Pull Request data
+      shell: bash
+      run: |
+        echo '${{ fromJson(steps.get_pr_data.outputs.result).number }}'
+        echo '${{ fromJson(steps.get_pr_data.outputs.result).title }}'
 
     - name: Install dependencies
+      if: steps.vrt_enabled.outputs.runVrt && (github.event_name == 'pull_request' || !steps.get_pr_data.outputs.result.id)
       shell: bash
       run: yarn install --frozen-lockfile
 
     - name: Build storybook
-      if: steps.vrt_enabled.outputs.runVrt
+      if: steps.vrt_enabled.outputs.runVrt && (github.event_name == 'pull_request' || !steps.get_pr_data.outputs.result.id)
       shell: bash
       run: yarn storybook:build
 
     - name: create the current snapshot
-      if: steps.vrt_enabled.outputs.runVrt
+      if: steps.vrt_enabled.outputs.runVrt && (github.event_name == 'pull_request' || !steps.get_pr_data.outputs.result.id)
       shell: bash
       run: yarn storycap
 
@@ -56,7 +70,7 @@ runs:
       run: yarn run reg-suit run
 
     - name: Run Reg-suit (push)
-      if: steps.vrt_enabled.outputs.runVrt && github.event_name == 'push'
+      if: steps.vrt_enabled.outputs.runVrt && github.event_name == 'push' && !steps.get_pr_data.outputs.result.id
       shell: bash
       env:
         AWS_ACCESS_KEY_ID: ${{ inputs.aws-access-key-id }}
