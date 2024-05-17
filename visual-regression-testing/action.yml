@@ -14,46 +14,11 @@ runs:
   using: 'composite'
 
   steps:
-    - name: Reset permissions
-      shell: bash
-      run: sudo chown -R $USER:$USER $GITHUB_WORKSPACE
-
-    - uses: actions/checkout@v3
+    - name: Use Node.js
+      uses: actions/setup-node@v4
       with:
-        fetch-depth: 0
-
-    - name: Get OS
-      id: os
-      shell: bash
-      run: |
-        if [ -n "$(command -v apt-get)" ]; then
-          echo "os=ubuntu" >> $GITHUB_OUTPUT
-          echo "Using Ubuntu"
-        else
-          echo "os=linux" >> $GITHUB_OUTPUT
-          echo "Using Linux"
-        fi
-
-    - name: Update
-      shell: bash
-      run: |
-        if [ ${{ steps.os.outputs.os }} = 'ubuntu' ]; then
-          for i in 1 2 3 4 5; do sudo apt-get update && break || sleep 15; done
-          for i in 1 2 3 4 5; do sudo apt-get -y upgrade && break || sleep 15; done
-          for i in 1 2 3 4 5; do sudo apt update && break || sleep 15; done
-          for i in 1 2 3 4 5; do sudo apt-get autoremove --purge && break || sleep 15; done
-        else
-          sudo yum clean all --enablerepo=*
-        fi
-
-    - name: Install jq
-      shell: bash
-      run: |
-        if [ ${{ steps.os.outputs.os }} = 'ubuntu' ]; then
-          for i in 1 2 3 4 5; do sudo apt-get install -y jq && break || sleep 15; done
-        else
-          sudo yum install jq -y
-        fi
+        node-version-file: '.nvmrc'
+        cache: 'yarn'
 
     - name: Check if VRT enabled
       id: vrt_enabled
@@ -67,54 +32,14 @@ runs:
           echo "VRT Not enabled"
         fi
 
-    - name: Install Chrome
-      if: steps.vrt_enabled.outputs.runVrt
-      shell: bash
-      run: |
-        if [ ${{ steps.os.outputs.os }} = 'ubuntu' ]; then
-          echo "Using ubuntu"
-          echo "Chrome should already be installed in the AMI"
-        else
-          echo "Using linux"
-          sudo amazon-linux-extras install epel
-          sudo yum-config-manager --add-repo http://dl.google.com/linux/chrome/rpm/stable/x86_64
-          sudo yum-config-manager --save --setopt=dl.google.com_linux_chrome_rpm_stable_x86_64.gpgkey=https://dl.google.com/linux/linux_signing_key.pub --setopt=dl.google.com_linux_chrome_rpm_stable_x86_64.gpgcheck=1
-          sudo yum install -y google-chrome-stable
-        fi
-
-    - name: Read .nvmrc
-      shell: bash
-      id: nvm
-      run: |
-        version=$(cat .nvmrc)
-        echo "NVMRC=$version" >> $GITHUB_OUTPUT
-
-    - name: Use Node.js ${{ steps.nvm.outputs.NVMRC }}
-      if: steps.vrt_enabled.outputs.runVrt
-      uses: actions/setup-node@v3
-      with:
-        node-version: "${{ steps.nvm.outputs.NVMRC }}"
-
-    - name: Install yarn
-      if: steps.vrt_enabled.outputs.runVrt
-      shell: bash
-      run: npm install -g yarn
-
     - name: workaround for detached HEAD
       if: steps.vrt_enabled.outputs.runVrt
       shell: bash
       run: git checkout ${{ github.event.pull_request.head.ref }} && git pull
 
-    - name: Reset permissions
-      shell: bash
-      run: sudo chown -R $USER:$USER $GITHUB_WORKSPACE
-
     - name: Install dependencies
-      if: steps.vrt_enabled.outputs.runVrt
       shell: bash
-      run: yarn install --pure-lockfile
-      env:
-        CI: true
+      run: yarn install --frozen-lockfile
 
     - name: Build storybook
       if: steps.vrt_enabled.outputs.runVrt
