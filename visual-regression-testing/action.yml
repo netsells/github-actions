@@ -26,10 +26,10 @@ runs:
           echo "VRT Not enabled"
         fi
 
-    - name: workaround for detached HEAD
-      if: steps.vrt_enabled.outputs.runVrt
-      shell: bash
-      run: git checkout origin/${{ github.event.pull_request.head.ref }} && git pull
+#    - name: workaround for detached HEAD
+#      if: steps.vrt_enabled.outputs.runVrt
+#      shell: bash
+#      run: git checkout origin/${{ github.event.pull_request.head.ref }} && git pull
 
     - name: Install dependencies
       shell: bash
