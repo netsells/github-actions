@@ -29,7 +29,7 @@ runs:
     - name: workaround for detached HEAD
       if: steps.vrt_enabled.outputs.runVrt
       shell: bash
-      run: git checkout ${{ github.event.pull_request.head.ref }} && git pull
+      run: git checkout origin/${{ github.event.pull_request.head.ref }} && git pull
 
     - name: Install dependencies
       shell: bash
