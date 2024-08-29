@@ -34,17 +34,17 @@ runs:
           echo "Using Linux"
         fi
 
-    # - name: Update
-    #   shell: bash
-    #   run: |
-    #     if [ ${{ steps.os.outputs.os }} = 'ubuntu' ]; then
-    #       for i in 1 2 3 4 5; do sudo apt-get update && break || sleep 15; done
-    #       for i in 1 2 3 4 5; do sudo apt-get -y upgrade && break || sleep 15; done
-    #       for i in 1 2 3 4 5; do sudo apt update && break || sleep 15; done
-    #       for i in 1 2 3 4 5; do sudo apt-get autoremove --purge && break || sleep 15; done
-    #     else
-    #       sudo yum clean all --enablerepo=*
-    #     fi
+    - name: Update
+      shell: bash
+      run: |
+        if [ ${{ steps.os.outputs.os }} = 'ubuntu' ]; then
+          for i in 1 2 3 4 5; do sudo apt-get update && break || sleep 15; done
+          for i in 1 2 3 4 5; do sudo apt-get -y upgrade && break || sleep 15; done
+          for i in 1 2 3 4 5; do sudo apt update && break || sleep 15; done
+          for i in 1 2 3 4 5; do sudo apt-get autoremove --purge && break || sleep 15; done
+        else
+          sudo yum clean all --enablerepo=*
+        fi
 
     - name: Install jq
       shell: bash
