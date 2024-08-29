@@ -1,17 +1,17 @@
-name: 'Visual Regression Testing'
+name: "Visual Regression Testing"
 
-description: 'Run visual regression testing'
+description: "Run visual regression testing"
 
 inputs:
   aws-access-key-id:
-    description: 'AWS access key id'
+    description: "AWS access key id"
     required: true
   aws-secret-access-key:
-    description: 'AWS secret access key'
+    description: "AWS secret access key"
     required: true
 
 runs:
-  using: 'composite'
+  using: "composite"
 
   steps:
     - name: Reset permissions
@@ -68,19 +68,10 @@ runs:
         fi
 
     - name: Install Chrome
-      if: steps.vrt_enabled.outputs.runVrt
-      shell: bash
-      run: |
-        if [ ${{ steps.os.outputs.os }} = 'ubuntu' ]; then
-          echo "Using ubuntu"
-          echo "Chrome should already be installed in the AMI"
-        else
-          echo "Using linux"
-          sudo amazon-linux-extras install epel
-          sudo yum-config-manager --add-repo http://dl.google.com/linux/chrome/rpm/stable/x86_64
-          sudo yum-config-manager --save --setopt=dl.google.com_linux_chrome_rpm_stable_x86_64.gpgkey=https://dl.google.com/linux/linux_signing_key.pub --setopt=dl.google.com_linux_chrome_rpm_stable_x86_64.gpgcheck=1
-          sudo yum install -y google-chrome-stable
-        fi
+      id: chrome
+      uses: browser-actions/setup-chrome@facf10a55b9caf92e0cc749b4f82bf8220989148 # v1.7.2
+      with:
+        chrome-version: 127
 
     - name: Read .nvmrc
       shell: bash
