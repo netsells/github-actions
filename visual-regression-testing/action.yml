@@ -116,7 +116,7 @@ runs:
     - name: Create the current snapshots
       if: steps.vrt_enabled.outputs.runVrt
       shell: bash
-      run: yarn storycap
+      run: yarn storycap --chromiumPath ${{ steps.chrome.outputs.chrome-path }}
 
     - name: Run Reg-suit (pull request)
       if: steps.vrt_enabled.outputs.runVrt && github.event_name == 'pull_request'
