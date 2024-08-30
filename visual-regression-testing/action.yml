@@ -26,6 +26,13 @@ runs:
           echo "VRT Not enabled"
         fi
 
+    - name: Install Chrome
+      if: steps.vrt_enabled.outputs.runVrt
+      id: chrome
+      uses: browser-actions/setup-chrome@facf10a55b9caf92e0cc749b4f82bf8220989148 # v1.7.2
+      with:
+        chrome-version: 127
+
     - name: Install dependencies
       shell: bash
       run: yarn install --frozen-lockfile
@@ -38,7 +45,7 @@ runs:
     - name: create the current snapshot
       if: steps.vrt_enabled.outputs.runVrt
       shell: bash
-      run: yarn storycap
+      run: yarn storycap --chromiumPath ${{ steps.chrome.outputs.chrome-path }}
 
     - name: Run Reg-suit (pull request)
       if: steps.vrt_enabled.outputs.runVrt && github.event_name == 'pull_request'
