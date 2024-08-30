@@ -14,61 +14,41 @@ runs:
   using: composite
 
   steps:
-    - name: Reset permissions
+    - name: Check if VRT enabled
+      id: vrt_enabled
       shell: bash
-      run: sudo chown -R $USER:$USER $GITHUB_WORKSPACE
-
-    - name: Checkout
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
+      run: |
+        vrtClientId=`echo $(jq -r '.plugins."reg-notify-github-plugin".clientId' <<< "$(cat regconfig.json)")`
+        if [[ $vrtClientId != "" ]]; then
+          echo "runVrt=true" >> $GITHUB_OUTPUT
+          echo "VRT Enabled"
+        else
+          echo "VRT Not enabled"
+        fi
 
     - name: Install Chrome
+      if: steps.vrt_enabled.outputs.runVrt
       id: chrome
       uses: browser-actions/setup-chrome@facf10a55b9caf92e0cc749b4f82bf8220989148 # v1.7.2
       with:
         chrome-version: 127
 
-    - name: Read .nvmrc
-      shell: bash
-      id: nvm
-      run: |
-        version=$(cat .nvmrc)
-        echo "NVMRC=$version" >> $GITHUB_OUTPUT
-
-    - name: Use Node.js ${{ steps.nvm.outputs.NVMRC }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ steps.nvm.outputs.NVMRC }}
-
-    - name: Install yarn
-      shell: bash
-      run: npm install -g yarn
-
-    - name: workaround for detached HEAD
-      shell: bash
-      run: git checkout ${{ github.event.pull_request.head.ref }} && git pull
-
-    - name: Reset permissions
-      shell: bash
-      run: sudo chown -R $USER:$USER $GITHUB_WORKSPACE
-
     - name: Install dependencies
       shell: bash
-      run: yarn install --pure-lockfile
-      env:
-        CI: true
+      run: yarn install --frozen-lockfile
 
     - name: Build storybook
+      if: steps.vrt_enabled.outputs.runVrt
       shell: bash
       run: yarn storybook:build
 
-    - name: Create the current snapshots
+    - name: create the current snapshot
+      if: steps.vrt_enabled.outputs.runVrt
       shell: bash
-      run: yarn storycap --chromiumPath ${{ steps.chrome.outputs.chrome-path }}
+      run: yarn storycap
 
     - name: Run Reg-suit (pull request)
-      if: github.event_name == 'pull_request'
+      if: steps.vrt_enabled.outputs.runVrt && github.event_name == 'pull_request'
       shell: bash
       env:
         AWS_ACCESS_KEY_ID: ${{ inputs.aws-access-key-id }}
@@ -78,7 +58,7 @@ runs:
       run: yarn run reg-suit run
 
     - name: Run Reg-suit (push)
-      if: github.event_name == 'push'
+      if: steps.vrt_enabled.outputs.runVrt && github.event_name == 'push'
       shell: bash
       env:
         AWS_ACCESS_KEY_ID: ${{ inputs.aws-access-key-id }}
