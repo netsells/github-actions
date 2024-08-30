@@ -1,24 +1,25 @@
-name: 'Visual Regression Testing'
+name: "Visual Regression Testing"
 
-description: 'Run visual regression testing'
+description: "Run visual regression testing"
 
 inputs:
   aws-access-key-id:
-    description: 'AWS access key id'
+    description: "AWS access key id"
     required: true
   aws-secret-access-key:
-    description: 'AWS secret access key'
+    description: "AWS secret access key"
     required: true
 
 runs:
-  using: 'composite'
+  using: "composite"
 
   steps:
     - name: Reset permissions
       shell: bash
       run: sudo chown -R $USER:$USER $GITHUB_WORKSPACE
 
-    - uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@v3
       with:
         fetch-depth: 0
 
@@ -84,7 +85,7 @@ runs:
       if: steps.vrt_enabled.outputs.runVrt
       uses: actions/setup-node@v3
       with:
-        node-version: '${{ steps.nvm.outputs.NVMRC }}'
+        node-version: "${{ steps.nvm.outputs.NVMRC }}"
 
     - name: Install yarn
       if: steps.vrt_enabled.outputs.runVrt
@@ -112,7 +113,7 @@ runs:
       shell: bash
       run: yarn storybook:build
 
-    - name: create the current snapshot
+    - name: Create the current snapshots
       if: steps.vrt_enabled.outputs.runVrt
       shell: bash
       run: yarn storycap
